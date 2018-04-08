@@ -11,6 +11,7 @@ from os import listdir
 import os.path
 from PIL import Image
 import numpy as np
+from random import shuffle
 
 from unet import UNet
 from myloss import dice_coeff
@@ -58,7 +59,10 @@ def train(epoch):
         for ndx in range(0, l, n):
             yield iterable[ndx:min(ndx + n, l)]
 
-    for batch_idx, batch_range in enumerate(batch(range(0, len(data_names)), args.batch_size)):
+    ids = list(range(0, len(data_names)))
+    shuffle(ids)
+
+    for batch_idx, batch_range in enumerate(batch(ids, args.batch_size)):
         images, masks = [], []
         for item_idx in batch_range:
             image = Image.open(os.path.join(args.data, data_names[item_idx]))
