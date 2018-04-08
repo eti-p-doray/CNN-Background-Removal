@@ -63,7 +63,10 @@ def train(epoch):
         for item_idx in batch_range:
             image = Image.open(os.path.join(args.data, data_names[item_idx]))
             mask = Image.open(os.path.join(args.truth, truth_names[item_idx]))
+            old_image, old_mask = image, mask
             image, mask = resize(image, 4), resize(mask, 4)
+            old_image.close()
+            old_mask.close()
             image = applyMask(image, getBoundingBox(mask, 0))
             #image, mask = cropBlack(image, mask) # TODO support variable size
 
@@ -102,7 +105,10 @@ def test():
     for i, (data_name, truth_name) in enumerate(zip(data_names, truth_names)):
         image = Image.open(os.path.join(args.data, data_name))
         mask = Image.open(os.path.join(args.truth, truth_name))
+        old_image, old_mask = image, mask
         image, mask = resize(image, 2), resize(mask, 2)
+        old_image.close()
+        old_mask.close()
         image = applyMask(image, getBoundingBox(mask, 20))
         #image, mask = cropBlack(image, mask)
 
