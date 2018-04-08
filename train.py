@@ -98,6 +98,7 @@ def train(epoch):
 def test():
     model.eval()
     tot_dice = 0
+    tot_bce = 0
     for i, (data_name, truth_name) in enumerate(zip(data_names, truth_names)):
         image = Image.open(os.path.join(args.data, data_name))
         mask = Image.open(os.path.join(args.truth, truth_name))
@@ -115,12 +116,19 @@ def test():
         data, truth = Variable(iter_data, volatile=True), Variable(iter_truth, volatile=True)
 
         output = model(data)
-        output_probs = (F.sigmoid(output) > 0.6).float()
+        output_probs_sig = F.sigmoid(output)
+        output_probs_dice = (output_probs_sig > 0.6).float()
+        output_probs_bce = (output_probs_sig).view(-1)
 
-        dice = dice_coeff(output_probs, truth.float()).data[0]
+
+        dice = dice_coeff(output_probs_dice, truth.float()).data[0]
         tot_dice += dice
 
+        loss = criterion(output_probs_bce, truth.view(-1).float())
+        tot_bce += loss.data[0]
+
     print('Validation Dice Coeff: {}'.format(tot_dice / len(data_names)))
+    print('Validation BCE : {}'.format(tot_bce / len(data_names)))
 
 
 for epoch in range(1, args.epoch + 1):
