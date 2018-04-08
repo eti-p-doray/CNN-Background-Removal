@@ -42,6 +42,13 @@ if len(data_names) != len(truth_names):
     print("Need the same amount of data and truth")
     exit(-1)
 
+data_idx = list(range(0, len(data_names)))
+shuffle(data_idx)
+
+split_point = int(round(0.7*len(data_idx))) #using 70% as training and 30% as Validation
+train_idx = data_idx[0:split_point]
+valid_idx = data_idx[split_point:len(data_idx)]
+
 model = UNet(3,1)
 if use_cuda:
     model.cuda()
@@ -59,7 +66,7 @@ def train(epoch):
         for ndx in range(0, l, n):
             yield iterable[ndx:min(ndx + n, l)]
 
-    ids = list(range(0, len(data_names)))
+    ids = list(train_idx)
     shuffle(ids)
 
     for batch_idx, batch_range in enumerate(batch(ids, args.batch_size)):
@@ -99,16 +106,16 @@ def train(epoch):
 
         if batch_idx % log_frequency == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, (batch_idx+1) * len(data), len(data_names),
-                100. * (batch_idx+1) * len(data) / len(data_names), loss.data[0]))
+                epoch, (batch_idx+1) * len(data), len(ids),
+                100. * (batch_idx+1) * len(data) / len(ids), loss.data[0]))
 
 def test():
     model.eval()
     tot_dice = 0
     tot_bce = 0
-    for i, (data_name, truth_name) in enumerate(zip(data_names, truth_names)):
-        image = Image.open(os.path.join(args.data, data_name))
-        mask = Image.open(os.path.join(args.truth, truth_name))
+    for i in valid_idx:
+        image = Image.open(os.path.join(args.data, data_names[i]))
+        mask = Image.open(os.path.join(args.truth, truth_names[i]))
         old_image, old_mask = image, mask
         image, mask = resize(image, 2), resize(mask, 2)
         old_image.close()
@@ -137,8 +144,8 @@ def test():
         loss = criterion(output_probs_bce, truth.view(-1).float())
         tot_bce += loss.data[0]
 
-    print('Validation Dice Coeff: {}'.format(tot_dice / len(data_names)))
-    print('Validation BCE : {}'.format(tot_bce / len(data_names)))
+    print('Validation Dice Coeff: {}'.format(tot_dice / len(valid_idx)))
+    print('Validation BCE : {}'.format(tot_bce / len(valid_idx)))
 
 
 for epoch in range(1, args.epoch + 1):
