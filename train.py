@@ -27,6 +27,9 @@ parser.add_argument("--lr", type=float, default=0.01, help="Learning rate used t
 parser.add_argument("-m", dest="momentum", type=float, default=0.5, help="Momentum used by the optimizer")
 parser.add_argument("-e", dest="epoch", type=int, default=5, help="Number of training epochs")
 parser.add_argument("-b", dest="batch_size", type=int, default=4, help="Size of the batches used in training")
+parser.add_argument("-s", dest="model_save_dir", type=str, default=None, help="Path of a directory in which model checkpoints will be saved. None to avoid saving them. ")
+parser.add_argument("--ss", dest="model_save_single", type=str, default=None, help="Path to a file where to store the latest checkpoint. Unlike -s, this will only keep one saved checkpoint instead of a checkpoint for each epoch")
+parser.add_argument("-i", dest="input_checkpoint", type=str, default=None, help="Path of a checkpoint file from which the model should be initialised. Leave to None to create new model.")
 parser.add_argument("--cpu", dest="cpu", action="store_true", required=False, help="Use CPU instead of CUDA.")
 args = parser.parse_args()
 
@@ -53,6 +56,9 @@ model = UNet(3,1)
 if use_cuda:
     model.cuda()
     print("Using CUDA")
+
+if args.input_checkpoint is not None:
+    model.load_state_dict(torch.load(args.input_checkpoint))
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 criterion = nn.BCELoss()
@@ -151,3 +157,7 @@ def test():
 for epoch in range(1, args.epoch + 1):
     train(epoch)
     test()
+    if (args.model_save_dir is not None):
+        torch.save(model.state_dict(), os.path.join(args.model_save_dir, "model_epoch{}.pth".format(epoch)))
+    if (args.model_save_single is not None):
+        torch.save(model.state_dict(), args.model_save_single)
