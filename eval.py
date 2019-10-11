@@ -68,8 +68,6 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Evalutate image")
     parser.add_argument("input", type=str,
         help="Path to a file containing input image")
-    parser.add_argument("object", type=str,
-        help="Path to a file containing trimap image")
     parser.add_argument("output", type=str,
         help="Path to the output file")
     parser.add_argument('--checkpoint', type=int, default=None,
@@ -116,7 +114,7 @@ def main(args):
     input_filename = args.input
     image = load_image(input_filename)
     print(image.shape)
-    trimap = generate_trimap(args.object)
+    trimap = generate_trimap(input_filename)
 
     image = np.array(image)
     trimap = np.array(trimap)[..., np.newaxis]
