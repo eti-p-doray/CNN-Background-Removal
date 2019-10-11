@@ -64,4 +64,4 @@ The training script will save a checkpoint in the `log` directory after each 100
 ## Evaluate
 In order to try our model, we included a snapshot of our trained model (in the `log` directory). That can be used as follow:
 
-`python3 eval.py <input_img_path> <trimap_img_path> <output_img_path> --checkpoint -1`
+`python3 eval.py <input_img_path> <output_img_path> --checkpoint -1`
