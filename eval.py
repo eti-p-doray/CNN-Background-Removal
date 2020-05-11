@@ -45,7 +45,7 @@ def generate_trimap(object_file):
     if foreground is None:
         return False
     print(foreground.shape)
-    alpha = cv2.split(foreground)[3]
+    alpha = cv2.split(foreground)[2]
 
     ratio = np.amin(np.divide(size, alpha.shape[0:2]))
     forground_size = np.floor(np.multiply(alpha.shape[0:2], ratio)).astype(int)
